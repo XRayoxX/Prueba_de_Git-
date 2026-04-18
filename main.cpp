@@ -260,7 +260,7 @@ public:
 //  MAIN
 // ============================================================
 int main() {
-    InitWindow(Config::SCREEN_W, Config::SCREEN_H, "Doodle Jump Grupo 4");
+    InitWindow(Config::SCREEN_W, Config::SCREEN_H, "Doodle Jump Grupo 3");
     SetTargetFPS(60);
 
     Game game;
