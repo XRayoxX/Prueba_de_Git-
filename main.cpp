@@ -1,7 +1,11 @@
 #include "raylib.h"
+
+// ESTA ES LA ÚNICA VEZ QUE APARECERÁ ESTO EN TODO EL PROYECTO
+#define RAYGUI_IMPLEMENTATION
+
+#include "login.h" // Ahora login.h usará la implementación de arriba
 #include <vector>
 #include <string>
-#include <algorithm>
 
 // ============================================================
 //  CONFIGURACIÓN Y CONSTANTES
@@ -15,7 +19,7 @@ namespace Config {
     constexpr float PLAYER_RADIUS = 15.0f;
     constexpr int   PLATFORM_W    = 60;
     constexpr int   PLATFORM_H    = 15;
-    constexpr int   PLATFORM_COUNT= 12; // Suficientes para llenar la pantalla
+    constexpr int   PLATFORM_COUNT= 12;
     constexpr float PLAT_SPACING  = 90.0f;
 }
 
@@ -75,17 +79,12 @@ private:
     std::vector<Platform> platforms;
     Camera2D camera;
 
-    // Variables de Login y Score
-    char username[16];
-    int letterCount;
     int score;
     int highScore;
 
 public:
     Game() {
         state = GameState::LOGIN;
-        letterCount = 0;
-        username[0] = '\0';
         highScore = 0;
         camera = { 0 };
         camera.offset = { Config::SCREEN_W / 2.0f, Config::SCREEN_H / 2.0f };
@@ -100,11 +99,8 @@ public:
         camera.target = { Config::SCREEN_W / 2.0f, Config::SCREEN_H / 2.0f };
 
         platforms.clear();
-
-        // 1. Plataforma inicial garantizada bajo el jugador
         platforms.push_back(Platform(playerPos.x - 30, playerPos.y + 25, PlatformType::NORMAL));
 
-        // 2. Generar resto de plataformas iniciales hacia arriba
         for (int i = 1; i < Config::PLATFORM_COUNT; i++) {
             float rx = (float)GetRandomValue(0, Config::SCREEN_W - Config::PLATFORM_W);
             float ry = (Config::SCREEN_H - 100.0f) - (i * Config::PLAT_SPACING);
@@ -123,43 +119,28 @@ public:
 
     // --- LÓGICA DE LOGIN ---
     void UpdateLogin() {
-        int key = GetCharPressed();
-        while (key > 0) {
-            if ((key >= 32) && (key <= 125) && (letterCount < 15)) {
-                username[letterCount] = (char)key;
-                username[letterCount + 1] = '\0';
-                letterCount++;
-            }
-            key = GetCharPressed();
-        }
-        if (IsKeyPressed(KEY_BACKSPACE) && letterCount > 0) {
-            letterCount--;
-            username[letterCount] = '\0';
-        }
-        if (IsKeyPressed(KEY_ENTER) && letterCount > 0) state = GameState::INTRO;
+        // LO DEJAMOS VACÍO:
+        // Ya no cambiamos de estado al presionar ENTER.
+        // La validación ahora depende del botón en DibujarLogin()
     }
 
     void UpdateIntro() {
         if (IsKeyPressed(KEY_SPACE) || IsKeyPressed(KEY_ENTER)) {
-            playerSpeed.y = Config::JUMP_SPEED; // Primer salto
+            playerSpeed.y = Config::JUMP_SPEED;
             state = GameState::PLAYING;
         }
     }
 
     void UpdatePlaying() {
-        // Movimiento lateral
         if (IsKeyDown(KEY_LEFT))  playerPos.x -= Config::PLAYER_SPEED;
         if (IsKeyDown(KEY_RIGHT)) playerPos.x += Config::PLAYER_SPEED;
 
-        // Teletransporte lateral (Wrap)
         if (playerPos.x < 0) playerPos.x = Config::SCREEN_W;
         if (playerPos.x > Config::SCREEN_W) playerPos.x = 0;
 
-        // Física
         playerSpeed.y += Config::GRAVITY;
         playerPos.y += playerSpeed.y;
 
-        // Colisión con plataformas (solo al caer)
         if (playerSpeed.y > 0) {
             for (auto& p : platforms) {
                 if (p.active && CheckCollisionCircleRec(playerPos, Config::PLAYER_RADIUS, p.rect)) {
@@ -170,40 +151,28 @@ public:
             }
         }
 
-        // Cámara sigue al jugador solo hacia arriba
-        if (playerPos.y < camera.target.y) {
-            camera.target.y = playerPos.y;
-        }
+        if (playerPos.y < camera.target.y) camera.target.y = playerPos.y;
 
-        // RECICLAJE INFINITO
         float screenBottom = camera.target.y + (Config::SCREEN_H / 2.0f);
         for (auto& p : platforms) {
             p.Update();
-
-            // Si la plataforma queda atrás, la mandamos arriba
             if (p.rect.y > screenBottom) {
                 float highestY = screenBottom;
                 for (const auto& plat : platforms) if (plat.rect.y < highestY) highestY = plat.rect.y;
-
                 p.rect.y = highestY - Config::PLAT_SPACING;
                 p.rect.x = (float)GetRandomValue(0, Config::SCREEN_W - Config::PLATFORM_W);
                 p.active = true;
                 p.broken = false;
                 p.breakTimer = 15;
 
-                // Variedad de tipos
                 int rng = GetRandomValue(0, 100);
                 if (rng < 20) p.type = PlatformType::MOVING;
                 else if (rng < 40) p.type = PlatformType::FRAGILE;
                 else p.type = PlatformType::NORMAL;
-
                 score += 10;
             }
         }
-
         if (score > highScore) highScore = score;
-
-        // Muerte
         if (playerPos.y > screenBottom + 200) state = GameState::GAME_OVER;
     }
 
@@ -214,27 +183,27 @@ public:
         }
     }
 
-    // --- DIBUJADO ---
     void Draw() {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
         if (state == GameState::LOGIN) {
-            DrawText("LOGIN USUARIO", 100, 200, 25, DARKBLUE);
-            DrawRectangle(80, 250, 240, 40, LIGHTGRAY);
-            DrawText(username, 95, 260, 20, BLACK);
-            DrawText("Escribe tu nombre y pulsa ENTER", 80, 310, 15, GRAY);
+            // SI DIBUJARLOGIN() DEVUELVE TRUE (Credenciales correctas al hacer clic)
+            // CAMBIAMOS AL ESTADO INTRO
+            if (DibujarLogin()) {
+                state = GameState::INTRO;
+            }
         }
         else {
             BeginMode2D(camera);
                 for (const auto& p : platforms) p.Draw();
                 DrawCircleV(playerPos, Config::PLAYER_RADIUS, RED);
-                DrawCircleGradient((int)playerPos.x, (int)playerPos.y, 5, WHITE, RED); // Brillo
+                DrawCircleGradient((int)playerPos.x, (int)playerPos.y, 5, WHITE, RED);
             EndMode2D();
 
-            // Interfaz (HUD)
             DrawRectangle(0, 0, Config::SCREEN_W, 50, Fade(SKYBLUE, 0.8f));
-            DrawText(TextFormat("PLAYER: %s", username), 10, 15, 18, BLACK);
+            // Obtenemos el nombre directamente de la variable del login.h
+            DrawText(TextFormat("PLAYER: %s", usuario), 10, 15, 18, BLACK);
             DrawText(TextFormat("SCORE: %05i", score), 260, 15, 18, MAROON);
 
             if (state == GameState::INTRO) {
@@ -251,25 +220,18 @@ public:
                 DrawText("Pulsa ENTER para volver a intentar", 70, 380, 15, LIGHTGRAY);
             }
         }
-
         EndDrawing();
     }
 };
 
-// ============================================================
-//  MAIN
-// ============================================================
 int main() {
     InitWindow(Config::SCREEN_W, Config::SCREEN_H, "Doodle Jump Grupo 3");
     SetTargetFPS(60);
-
     Game game;
-
     while (!WindowShouldClose()) {
         game.Update();
         game.Draw();
     }
-
     CloseWindow();
     return 0;
 }
