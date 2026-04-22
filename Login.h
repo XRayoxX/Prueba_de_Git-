@@ -1,10 +1,10 @@
 #ifndef PRUEBA2_LOGIN_H
 #define PRUEBA2_LOGIN_H
-
 #include "raylib.h"
 #include "raygui.h" // <--- ¡Esto es lo que faltaba!
 #include <string.h>
-
+#include  "requests.h"
+#include "api.h"
 // Variables de estado
 inline char usuario[32] = "";
 inline char password[32] = "";
@@ -109,8 +109,12 @@ inline bool DibujarLogin() {
     }
 
     if (mouseSobre && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
-        if (strcmp(usuario, "admin") == 0 && strcmp(password, "1234") == 0) {
+
+        std::string token = loginRequest(usuario, password);
+
+        if (!token.empty()) {
             loginExitoso = true;
+            mostrarError = false;
         } else {
             mostrarError = true;
             mensajeError = "CREDENTIALS ERROR";

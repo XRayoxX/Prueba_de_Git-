@@ -223,6 +223,10 @@ public:
         EndDrawing();
     }
 };
+#include "api.h"
+
+ApiClient api("https://arcadeumg.duckdns.org/api");
+std::string jwtToken = "";
 
 int main() {
     InitWindow(Config::SCREEN_W, Config::SCREEN_H, "Doodle Jump Grupo 3");
