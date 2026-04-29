@@ -80,83 +80,105 @@ inline bool DibujarLogin() {
     DibujarFondoRetro();
 
     // --- HUD SUPERIOR ---
-    DrawText("1P", 35, 20, 25, WHITE);
-    DrawText("00", 35, 50, 25, NEON_CYAN);
+    DrawText("1P",    35, 20, 25, WHITE);
+    DrawText("00",    35, 48, 25, NEON_CYAN);
 
     DrawText("PLAYER", w/2 - MeasureText("PLAYER", 20)/2, 20, 20, YELLOW);
-    DrawText(usuario, w/2 - MeasureText(usuario, 25)/2, 45, 25, WHITE);
+    DrawText(usuario,  w/2 - MeasureText(usuario, 20)/2,  44, 20, WHITE);
 
-    DrawText("Puntos", w - 130, 22, 20, WHITE);
-    DrawText("00", w - 90, 50, 25, NEON_PINK);
+    DrawText("Puntos", w - 130, 20, 20, WHITE);
+    DrawText("00",     w - 95,  48, 25, NEON_PINK);
 
-    // --- SECCIÓN DE TOKENS (CENTRADA) ---
-    DrawText("TOKENS", w/2 - MeasureText("TOKENS", 20)/2, 80, 20, NEON_CYAN);
-    DrawText(TextFormat("%d", tokensJugador), w/2 - MeasureText(TextFormat("%d", tokensJugador), 25)/2, 105, 25, WHITE);
+    DrawLine(0, 85, w, 85, (Color){0, 255, 255, 40});
 
-    // Movimos estos textos al centro y ajustamos su posición Y
-    DrawText(TextFormat("Antes: %d", tokensAntesLogin), w/2 - MeasureText(TextFormat("Antes: %d", tokensAntesLogin), 18)/2, 140, 18, GOLD);
-    DrawText(TextFormat("Descuento: -%d", tokensDescontados), w/2 - MeasureText(TextFormat("Descuento: -%d", tokensDescontados), 18)/2, 165, 18, RED);
-    DrawText(TextFormat("Actual: %d", tokensJugador), w/2 - MeasureText(TextFormat("Actual: %d", tokensJugador), 18)/2, 190, 18, GREEN);
+    // --- TOKENS (centrado) ---
+    DrawText("TOKENS", w/2 - MeasureText("TOKENS", 18)/2, 96, 18, NEON_CYAN);
+    DrawText(TextFormat("%d", tokensJugador),
+             w/2 - MeasureText(TextFormat("%d", tokensJugador), 28)/2,
+             118, 28, WHITE);
 
-    // --- TÍTULO PRINCIPAL (Bajado para no chocar) ---
-    float yTitulo = h * 0.28f; // Bajado de 0.22f a 0.28f
-    DrawText("USER LOGIN", w/2 - MeasureText("USER LOGIN", 40)/2, yTitulo, 40, WHITE);
+    // --- PANEL Antes / Descuento / Actual ---
+    float panelW = w * 0.78f;
+    float panelX = (w - panelW) / 2;
+    float panelY = 158;
+    DrawRectangleRounded({panelX, panelY, panelW, 52}, 0.2f, 8, {255,255,255,13});
 
-    // --- TEXTBOXES (Bajados proporcionalmente) ---
-    float boxWidth = w * 0.75f;
-    float boxHeight = 50;
+    DrawLine(panelX + panelW/3,   panelY+8, panelX + panelW/3,   panelY+44, {255,255,255,35});
+    DrawLine(panelX + panelW*2/3, panelY+8, panelX + panelW*2/3, panelY+44, {255,255,255,35});
+
+    // Labels
+    DrawText("Antes",     panelX + panelW*0/3 + 14, panelY+7,  10, GRAY);
+    DrawText("Descuento", panelX + panelW*1/3 + 6,  panelY+7,  10, GRAY);
+    DrawText("Actual",    panelX + panelW*2/3 + 14, panelY+7,  10, GRAY);
+    // Valores
+    DrawText(TextFormat("%d",  tokensAntesLogin),
+             panelX + panelW*0/3 + 14, panelY+24, 18, GOLD);
+    DrawText(TextFormat("-%d", tokensDescontados),
+             panelX + panelW*1/3 + 14, panelY+24, 18, RED);
+    DrawText(TextFormat("%d",  tokensJugador),
+             panelX + panelW*2/3 + 14, panelY+24, 18, GREEN);
+
+    // --- TÍTULO ---
+    float yTitulo = h * 0.36f;
+    DrawText("USER LOGIN", w/2 - MeasureText("USER LOGIN", 36)/2, yTitulo, 36, WHITE);
+    DrawLine(w*0.12f, yTitulo+42, w*0.88f, yTitulo+42, (Color){0,255,255,100});
+
+    // --- TEXTBOXES ---
+    float boxWidth  = w * 0.78f;
+    float boxHeight = 48;
     float x = (w - boxWidth) / 2;
 
-    float yUsuario = h * 0.40f; // Antes 0.35f
-    float yPass    = h * 0.52f; // Antes 0.47f
-    float yBtn     = h * 0.68f; // Antes 0.62f
+    float yUsuario = h * 0.50f;
+    float yPass    = h * 0.62f;
+    float yBtn     = h * 0.76f;
 
     GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
     GuiSetStyle(TEXTBOX, TEXT_PADDING, 10);
 
-    // Caja Usuario
+    // Label + Caja Usuario
+    DrawText("USUARIO", x, yUsuario - 18, 11, NEON_CYAN);
     if (GuiTextBox({x, yUsuario, boxWidth, boxHeight}, usuario, 32, usuarioEditMode)) {
-        usuarioEditMode = !usuarioEditMode;
+        usuarioEditMode  = !usuarioEditMode;
         passwordEditMode = false;
     }
     if (strlen(usuario) == 0 && !usuarioEditMode)
-        DrawText("INSERT NAME", x + 10, yUsuario + 15, 20, GRAY);
+        DrawText("INSERT NAME", x + 12, yUsuario + 15, 18, GRAY);
 
-    // Caja Password
+    // Label + Caja Password
+    DrawText("PASSWORD", x, yPass - 18, 11, NEON_CYAN);
     if (GuiTextBox({x, yPass, boxWidth, boxHeight}, password, 32, passwordEditMode)) {
         passwordEditMode = !passwordEditMode;
-        usuarioEditMode = false;
+        usuarioEditMode  = false;
     }
     if (strlen(password) == 0 && !passwordEditMode)
-        DrawText("INSERT PASS", x + 10, yPass + 15, 20, GRAY);
+        DrawText("INSERT PASS", x + 12, yPass + 15, 18, GRAY);
 
     // --- BOTÓN ---
-    Rectangle btn = {x, yBtn, boxWidth, 65};
+    Rectangle btn = {x, yBtn, boxWidth, 60};
     bool hover = CheckCollisionPointRec(GetMousePosition(), btn);
     DrawRectangleRec(btn, hover ? NEON_CYAN : WHITE);
-    DrawText("START GAME", w/2 - MeasureText("START GAME", 28)/2, btn.y + 18, 28, BLACK);
+    DrawText("START GAME", w/2 - MeasureText("START GAME", 26)/2, btn.y + 17, 26, BLACK);
 
-    // --- LÓGICA DE LOGIN ---
+    // --- LOGIN LOGIC ---
     if (hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         std::string token = loginRequest(usuario, password);
         if (!token.empty()) {
             jwtToken = token;
             tokensAntesLogin = api.getTokens(jwtToken);
-            tokensJugador = tokensAntesLogin;
+            tokensJugador    = tokensAntesLogin;
             RestarTokenLogin();
             loginExitoso = true;
         } else {
-            mostrarError = true;
-            mensajeError = "CREDENTIALS ERROR";
+            mostrarError  = true;
+            mensajeError  = "CREDENTIALS ERROR";
         }
     }
 
-    if (mostrarError) {
-        DrawText(mensajeError, w/2 - MeasureText(mensajeError, 20) / 2, h * 0.85f, 20, RED);
-    }
+    if (mostrarError)
+        DrawText(mensajeError, w/2 - MeasureText(mensajeError,18)/2, h*0.90f, 18, RED);
 
     DibujarScanlines();
     return loginExitoso;
 }
 
-#endif
+#endif // PRUEBA2_LOGIN_H
