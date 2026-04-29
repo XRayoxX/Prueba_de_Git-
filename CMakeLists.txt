@@ -4,7 +4,7 @@ project(prueba2)
 set(CMAKE_CXX_STANDARD 20)
 
 add_subdirectory(raylib)
-
+file(COPY Imagenes DESTINATION ${CMAKE_CURRENT_BINARY_DIR})
 # Buscar CURL (usa mingw64)
 set(CMAKE_PREFIX_PATH "C:/msys64/mingw64")
 find_package(CURL REQUIRED)
@@ -16,6 +16,7 @@ add_executable(prueba2
         Puntaje.h
         Puntaje.h
         Puntaje.h
+        Game_Over.h
 )
 
 target_link_libraries(prueba2

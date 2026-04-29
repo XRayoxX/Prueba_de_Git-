@@ -14,8 +14,7 @@ inline int tokensDescontados = 3;
 // Restar 1 token al loguearse
 inline void RestarTokenLogin() {
 
-    int nuevosTokens = api.loseTokens(jwtToken,3);
-
+    int nuevosTokens = api.loseTokens(jwtToken,tokensDescontados);
     if(nuevosTokens >= 0){
         tokensJugador = nuevosTokens;
     }
