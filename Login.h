@@ -21,13 +21,16 @@ inline bool passwordEditMode = false;
 inline bool mostrarError = false;
 inline const char* mensajeError = "";
 
+// BUG 1 FIX: loginValidado debe ser accesible desde main.cpp para
+// poder resetearlo cuando el usuario presiona SALIR en Game Over.
+// Se declara inline para que todos los archivos compartan la misma variable.
 inline bool loginValidado = false;
 
 // Colores
-static const Color NEON_CYAN = { 0, 255, 255, 255 };
-static const Color NEON_PINK = { 255, 0, 255, 255 };
-static const Color RETRO_BLUE = { 10, 20, 40, 255 };
-static const Color GRID_COLOR = { 0, 100, 150, 100 };
+static const Color NEON_CYAN  = { 0,   255, 255, 255 };
+static const Color NEON_PINK  = { 255, 0,   255, 255 };
+static const Color RETRO_BLUE = { 10,  20,  40,  255 };
+static const Color GRID_COLOR = { 0,   100, 150, 100 };
 
 void DibujarFondoRetro() {
     ClearBackground(RETRO_BLUE);
@@ -59,7 +62,7 @@ inline bool DibujarLogin() {
     DrawText("1P", 35, 20, 25, WHITE);
     DrawText("00", 35, 48, 25, NEON_CYAN);
     DrawText("PLAYER", w / 2 - MeasureText("PLAYER", 20) / 2, 20, 20, YELLOW);
-    DrawText(usuario, w / 2 - MeasureText(usuario, 20) / 2, 44, 20, WHITE);
+    DrawText(usuario,  w / 2 - MeasureText(usuario,   20) / 2, 44, 20, WHITE);
     DrawText("Puntos", w - 130, 20, 20, WHITE);
     DrawText(TextFormat("%02d", tokensJugador), w - 95, 48, 25, NEON_PINK);
 
@@ -67,7 +70,9 @@ inline bool DibujarLogin() {
 
     // TOKENS DISPLAY
     DrawText("TOKENS", w / 2 - MeasureText("TOKENS", 18) / 2, 96, 18, NEON_CYAN);
-    DrawText(TextFormat("%d", tokensJugador), w / 2 - MeasureText(TextFormat("%d", tokensJugador), 28) / 2, 118, 28, WHITE);
+    DrawText(TextFormat("%d", tokensJugador),
+             w / 2 - MeasureText(TextFormat("%d", tokensJugador), 28) / 2,
+             118, 28, WHITE);
 
     // PANEL DE DESCUENTO
     float panelW = w * 0.78f;
@@ -75,16 +80,16 @@ inline bool DibujarLogin() {
     float panelY = 158;
 
     DrawRectangleRounded({ panelX, panelY, panelW, 52 }, 0.2f, 8, { 255, 255, 255, 13 });
-    DrawLine(panelX + panelW / 3, panelY + 8, panelX + panelW / 3, panelY + 44, { 255, 255, 255, 35 });
+    DrawLine(panelX + panelW / 3,     panelY + 8, panelX + panelW / 3,     panelY + 44, { 255, 255, 255, 35 });
     DrawLine(panelX + panelW * 2 / 3, panelY + 8, panelX + panelW * 2 / 3, panelY + 44, { 255, 255, 255, 35 });
 
-    DrawText("Antes", panelX + 14, panelY + 7, 10, GRAY);
-    DrawText("Descuento", panelX + panelW / 3 + 6, panelY + 7, 10, GRAY);
-    DrawText("Actual", panelX + panelW * 2 / 3 + 14, panelY + 7, 10, GRAY);
+    DrawText("Antes",     panelX + 14,                   panelY + 7,  10, GRAY);
+    DrawText("Descuento", panelX + panelW / 3 + 6,       panelY + 7,  10, GRAY);
+    DrawText("Actual",    panelX + panelW * 2 / 3 + 14,  panelY + 7,  10, GRAY);
 
-    DrawText(TextFormat("%02d", tokensAntesLogin), panelX + 14, panelY + 24, 18, GOLD);
-    DrawText(TextFormat("-%d", tokensDescontados), panelX + panelW / 3 + 14, panelY + 24, 18, RED);
-    DrawText(TextFormat("%02d", tokensJugador), panelX + panelW * 2 / 3 + 14, panelY + 24, 18, GREEN);
+    DrawText(TextFormat("%02d", tokensAntesLogin),    panelX + 14,                  panelY + 24, 18, GOLD);
+    DrawText(TextFormat("-%d",  tokensDescontados),   panelX + panelW / 3 + 14,     panelY + 24, 18, RED);
+    DrawText(TextFormat("%02d", tokensJugador),       panelX + panelW * 2 / 3 + 14, panelY + 24, 18, GREEN);
 
     // TITULO
     float yTitulo = h * 0.36f;
@@ -92,72 +97,80 @@ inline bool DibujarLogin() {
     DrawLine(w * 0.12f, yTitulo + 42, w * 0.88f, yTitulo + 42, (Color){ 0, 255, 255, 100 });
 
     // INPUTS
-    float boxWidth = w * 0.78f;
+    float boxWidth  = w * 0.78f;
     float boxHeight = 48;
-    float x = (w - boxWidth) / 2;
-    float yUsuario = h * 0.50f;
-    float yPass = h * 0.62f;
-    float yBtn = h * 0.76f;
+    float x         = (w - boxWidth) / 2;
+    float yUsuario  = h * 0.50f;
+    float yPass     = h * 0.62f;
+    float yBtn      = h * 0.76f;
 
     GuiSetStyle(TEXTBOX, TEXT_ALIGNMENT, TEXT_ALIGN_LEFT);
     GuiSetStyle(TEXTBOX, TEXT_PADDING, 10);
 
     DrawText("USUARIO", x, yUsuario - 18, 11, NEON_CYAN);
     if (GuiTextBox({ x, yUsuario, boxWidth, boxHeight }, usuario, 32, usuarioEditMode)) {
-        usuarioEditMode = !usuarioEditMode;
+        usuarioEditMode  = !usuarioEditMode;
         passwordEditMode = false;
     }
 
     DrawText("PASSWORD", x, yPass - 18, 11, NEON_CYAN);
     if (GuiTextBox({ x, yPass, boxWidth, boxHeight }, password, 32, passwordEditMode)) {
         passwordEditMode = !passwordEditMode;
-        usuarioEditMode = false;
+        usuarioEditMode  = false;
     }
 
-    // --- LÓGICA DE MENSAJES Y BOTÓN ---
-    Rectangle btn = { x, yBtn, boxWidth, 60 };
-    bool hover = CheckCollisionPointRec(GetMousePosition(), btn);
+    // BOTÓN PRINCIPAL
+    Rectangle btn   = { x, yBtn, boxWidth, 60 };
+    bool hover      = CheckCollisionPointRec(GetMousePosition(), btn);
 
     if (!loginValidado) {
-        // Mientras no esté validado, siempre incitamos a presionar START
-        DrawText("PRESS START", w / 2 - MeasureText("PRESS START", 18) / 2, yBtn - 30, 18, YELLOW);
+        DrawText("PRESS START",
+                 w / 2 - MeasureText("PRESS START", 18) / 2,
+                 yBtn - 30, 18, YELLOW);
 
         DrawRectangleRec(btn, hover ? NEON_CYAN : WHITE);
-        DrawText("START GAME", w / 2 - MeasureText("START GAME", 26) / 2, btn.y + 17, 26, BLACK);
+        DrawText("START GAME",
+                 w / 2 - MeasureText("START GAME", 26) / 2,
+                 btn.y + 17, 26, BLACK);
     } else {
-        // Ya se validó el login y los tokens
         if ((int)(GetTime() * 2) % 2 == 0) {
-            DrawText("PRESS ENTER TO PLAY", w / 2 - MeasureText("PRESS ENTER TO PLAY", 18) / 2, yBtn - 30, 18, NEON_CYAN);
+            DrawText("PRESS ENTER TO PLAY",
+                     w / 2 - MeasureText("PRESS ENTER TO PLAY", 18) / 2,
+                     yBtn - 30, 18, NEON_CYAN);
         }
 
         DrawRectangleRec(btn, NEON_CYAN);
         if ((int)(GetTime() * 3) % 2 == 0) {
-            DrawText("READY!", w / 2 - MeasureText("READY!", 28) / 2, btn.y + 17, 28, BLACK);
+            DrawText("READY!",
+                     w / 2 - MeasureText("READY!", 28) / 2,
+                     btn.y + 17, 28, BLACK);
         }
     }
 
-    // ACCIÓN DEL CLICK
+    // ACCIÓN DEL CLICK — solo si aún no está validado
     if (hover && IsMouseButtonPressed(MOUSE_LEFT_BUTTON) && !loginValidado) {
+
         std::string token = loginRequest(usuario, password);
 
         if (!token.empty()) {
             jwtToken = token;
-            // Obtenemos los tokens reales del servidor ANTES de validar
+
             int tokensServidor = api.getTokens(jwtToken);
 
             if (tokensServidor >= tokensDescontados) {
                 tokensAntesLogin = tokensServidor;
-                tokensJugador = tokensServidor; // Actualizamos la global
-                RestarTokenLogin();             // Descontamos
+                tokensJugador    = tokensServidor;
+                RestarTokenLogin();
 
-                usuarioEditMode = false;
+                usuarioEditMode  = false;
                 passwordEditMode = false;
-                loginValidado = true;
-                mostrarError = false;
+                loginValidado    = true;
+                mostrarError     = false;
             } else {
-                tokensJugador = tokensServidor; // Actualizamos para que el HUD muestre que tiene pocos
-                mostrarError = true;
-                mensajeError = "NO Tiene Tokens Suficientes";
+                // BUG FIX: actualizar HUD aunque no tenga tokens suficientes
+                tokensJugador = tokensServidor;
+                mostrarError  = true;
+                mensajeError  = "NO Tiene Tokens Suficientes";
             }
         } else {
             mostrarError = true;
@@ -165,13 +178,16 @@ inline bool DibujarLogin() {
         }
     }
 
-    // PASAR AL JUEGO
-    if (loginValidado && (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER))) {
+    // PASAR AL JUEGO — Enter solo funciona si ya se validó
+    if (loginValidado &&
+        (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER))) {
         return true;
     }
 
     if (mostrarError) {
-        DrawText(mensajeError, w / 2 - MeasureText(mensajeError, 18) / 2, h * 0.90f, 18, RED);
+        DrawText(mensajeError,
+                 w / 2 - MeasureText(mensajeError, 18) / 2,
+                 h * 0.90f, 18, RED);
     }
 
     DibujarScanlines();

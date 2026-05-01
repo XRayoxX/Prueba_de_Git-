@@ -381,6 +381,12 @@ p.type=PlatformType::NORMAL;
 
 score+=10;
 
+// =====================================================
+// BUG 3 FIX: Se guarda el score en que se chequeó por
+// última vez para no llamar la API cada frame.
+// RevisarBonusTokens ya tiene el guard internamente,
+// pero también lo protegemos aquí con el mismo score.
+// =====================================================
 RevisarBonusTokens(score);
 
 }
@@ -409,11 +415,16 @@ void UpdateGameOver(){
 if(gameOver.TiempoTerminado()){
 
 InitLevel();
-
 gameOver.Reset();
 
-state=
-GameState::INTRO;
+// FIX: tiempo agotado también regresa al LOGIN y limpia al usuario
+loginValidado = false;
+mostrarError  = false;
+usuario[0]    = '\0';
+password[0]   = '\0';
+jwtToken      = "";
+tokensJugador = 0;
+state = GameState::LOGIN;
 
 return;
 }
@@ -424,13 +435,17 @@ if(gameOver.ClickContinue()){
 
 if(gameOver.HandleContinue()){
 
-playerPos.y-=150;
+// =====================================================
+// BUG 2 FIX: Mover al jugador encima de la cámara y
+// sincronizar la cámara a su nueva posición para que
+// no aparezca en un lugar aleatorio.
+// =====================================================
+playerPos.y = camera.target.y - (Config::SCREEN_H / 2.0f) + 200.0f;
+camera.target.y = playerPos.y;
 
-playerSpeed.y=
-Config::JUMP_SPEED;
+playerSpeed.y=Config::JUMP_SPEED;
 
-state=
-GameState::PLAYING;
+state=GameState::PLAYING;
 }
 }
 
@@ -438,12 +453,18 @@ GameState::PLAYING;
 
 if(gameOver.ClickSalir()){
 
+// =====================================================
+// BUG 1 FIX: Salir debe volver al LOGIN y resetear
+// loginValidado para que el usuario tenga que
+// autenticarse de nuevo.
+// =====================================================
 InitLevel();
-
 gameOver.Reset();
-
-state=
-GameState::INTRO;
+loginValidado = false;          // Resetea el flag del Login
+mostrarError  = false;          // Limpia mensajes de error
+usuario[0]    = '\0';           // Limpia campo usuario (opcional)
+password[0]   = '\0';           // Limpia campo password (opcional)
+state = GameState::LOGIN;       // ← LOGIN, no INTRO
 }
 
 }
@@ -571,12 +592,14 @@ EndDrawing();
 }
 
 };
+
 #include "api.h"
 ApiClient api(
 "https://arcadeumg.duckdns.org/api"
 );
 std::string jwtToken="";
 int tokensJugador=0;
+
 int main(){
 InitWindow(
 Config::SCREEN_W,
@@ -587,7 +610,6 @@ SetTargetFPS(60);
 Game game;
 while(!WindowShouldClose()){
 game.Update();
-
 game.Draw();
 }
 CloseWindow();

@@ -20,7 +20,9 @@ public:
         fondo=LoadTexture("Imagenes/GamerOver.png");
 
         startTime=0;
-        continueCost=5;
+        // FIX: el costo inicial se ancla al precio del juego (tokensDescontados)
+        // así si cambias el precio en Puntaje.h, se refleja automáticamente aquí
+        continueCost=tokensDescontados;
     }
 
 
@@ -32,7 +34,7 @@ public:
 
     void Start(){
 
-        startTime=GetTime();
+        startTime=(int)GetTime();
     }
 
 
@@ -48,7 +50,10 @@ public:
 
         int elapsed=(int)(GetTime()-startTime);
 
-        return 10-elapsed;
+        int restante=10-elapsed;
+
+        // BUG FIX: nunca mostrar número negativo si el tiempo ya pasó
+        return restante<0 ? 0 : restante;
     }
 
 
@@ -57,25 +62,23 @@ public:
         if(tokensJugador<continueCost)
             return false;
 
-
         int nuevosTokens=
             api.loseTokens(
                 jwtToken,
                 continueCost
             );
 
+        // BUG FIX: si la API falla (devuelve -1) no aplicamos el costo
+        // ni dejamos continuar, en lugar de dejar tokens en estado inválido
         if(nuevosTokens<0)
             return false;
 
-
         tokensJugador=nuevosTokens;
-
 
         continueCost*=2;
 
         if(continueCost>30)
             continueCost=30;
-
 
         return true;
     }
@@ -83,7 +86,9 @@ public:
 
     void Reset(){
 
-        continueCost=5;
+        // FIX: al resetear también volvemos al precio base del juego
+        continueCost=tokensDescontados;
+        startTime=(int)GetTime();
     }
 
 
@@ -105,7 +110,6 @@ public:
             WHITE
         );
 
-
         DrawText(
            TextFormat("%d",TiempoRestante()),
            185,
@@ -113,7 +117,6 @@ public:
            50,
            YELLOW
         );
-
 
         DrawText(
           TextFormat(
@@ -126,6 +129,16 @@ public:
           WHITE
         );
 
+        // BUG FIX: mostrar aviso cuando no tiene tokens suficientes
+        if(tokensJugador < continueCost){
+            DrawText(
+                "TOKENS INSUFICIENTES",
+                75,
+                370,
+                16,
+                RED
+            );
+        }
 
         Vector2 mouse=GetMousePosition();
 
@@ -137,21 +150,17 @@ public:
             100,460,200,50
         };
 
-
         Color c1=
         CheckCollisionPointRec(
             mouse,
             btnContinue
         ) ? LIME : GREEN;
 
-
         Color c2=
         CheckCollisionPointRec(
             mouse,
             btnSalir
         ) ? MAROON : RED;
-
-
 
         DrawRectangleRec(
            btnContinue,
@@ -165,6 +174,7 @@ public:
            22,
            WHITE
         );
+
         DrawRectangleRec(
            btnSalir,
            Fade(c2,0.9f)
@@ -187,7 +197,6 @@ public:
            ))
             return false;
 
-
         Vector2 mouse=
             GetMousePosition();
 
@@ -195,13 +204,11 @@ public:
             100,390,200,50
         };
 
-
         if(CheckCollisionPointRec(
            mouse,
            btnContinue
            ))
            return true;
-
 
         return false;
     }
@@ -214,7 +221,6 @@ public:
            ))
             return false;
 
-
         Vector2 mouse=
             GetMousePosition();
 
@@ -222,13 +228,11 @@ public:
             100,460,200,50
         };
 
-
         if(CheckCollisionPointRec(
             mouse,
             btnSalir
             ))
             return true;
-
 
         return false;
     }
